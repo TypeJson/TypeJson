@@ -24,59 +24,49 @@ func stringFirstWordToUpper(str string) (output string) {
 	output = string(wordList)
 	return
 }
-func setValue(target *Author, attr string, value interface{}) {
+func setValue(target interface{}, attr string, value interface{}) {
 	attrList := strings.Split(attr, ".")
-	for _, targetAttr := range attrList {
+	var tempPointer reflect.Value
+	for deepLevel, targetAttr := range attrList {
+		isFirstAttr := deepLevel == 0
+		isLastAttr := deepLevel == len(attrList) - 1
 		targetAttr = stringFirstWordToUpper(targetAttr)
-		targetRef := reflect.ValueOf(target)
-		tempPointer := targetRef.Elem().FieldByName(targetAttr)
-		tempPointer.Set(reflect.ValueOf(value))
+		if isFirstAttr {
+			tempPointer = reflect.ValueOf(target).Elem()
+		}
+		tempPointer = tempPointer.FieldByName(targetAttr)
+		if isLastAttr {
+			tempPointer.Set(reflect.ValueOf(value))
+		}
 	}
 }
 
 type Author struct {
 		Name  string   `json:"name"`
+		A struct {
+			B int `json:"b"`
+		} `json:"a"`
 		Age   int      `json:"age",omitempty`
 		Likes []string `json:"likes"`
 		Hot bool `json:"hot"`
 	}
 func TestValue(t *testing.T) {
-	//Convey("validator json firstWord", t, func() {
-	//	_, err := Parse("a")
-	//	So(err, ShouldBeError)
-	//	So(err.Error(), ShouldEqual, `typejson: jsonString first word must be "{" or "[", your error json is:`+"\r\na\r\n")
-	//})
-	//Convey("validator json lastWord", t, func() {
-	//	_, err := Parse("[a")
-	//	So(err, ShouldBeError)
-	//	So(err.Error(), ShouldEqual, `typejson: jsonString last word must be "}" or "]", your error json is:`+"\r\n[a\r\n")
-	//})
-	// jsonstring := `{"name":"nimo", "age": 27, "likes": ["js", "go"], "hot": true}`
 	jsonstring := `{"name":"nimo", "likes": ["js", "go"]}`
 	var nimo Author
 	json.Unmarshal([]byte(jsonstring), &nimo)
 	type TjsonSchame struct { Default interface{} }
 	types := map[string]TjsonSchame{
-		"age": { Default: 18 },
+		//"age" : { Default: 18 },
+		"a.b" : { Default: 10},
 	}
 	for key, schema := range types {
 		attr := key
 		isEmptyValue := len(gjson.Get(jsonstring, key).Raw) == 0
-		if isEmptyValue && schema.Default != nil{
+		if isEmptyValue && schema.Default != nil {
 			setValue(&nimo, attr, schema.Default)
 		}
+		fmt.Print("\r\n")
 		fmt.Print(nimo)
+		fmt.Print("\r\n")
 	}
-
-
-
-
-	//age := gjson.Get(jsonstring, "age")
-	//fmt.Print(age.Float())
-	// fmt.Print(nimo.Age) // 0
-	//Convey("sompile json", t, func() {
-	//	value, err := Parse(`{"name": "nimo"}`)
-	//	So(err, ShouldBeNil)
-	//	fmt.Print(value)
-	//})
 }
