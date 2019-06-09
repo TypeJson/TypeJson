@@ -1,72 +1,47 @@
 package typejson
 
 import (
-	"fmt"
-	"github.com/json-iterator/go"
-	"github.com/tidwall/gjson"
-	"reflect"
-	"strings"
+	. "github.com/smartystreets/goconvey/convey"
 	"testing"
-	"unicode"
-
-	//. "github.com/smartystreets/goconvey/convey"
 )
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
-func stringFirstWordToUpper(str string) (output string) {
-	wordList := []rune{}
-	for index, word := range str {
-		if index == 0 {
-			word = unicode.ToUpper(word)
-		}
-		wordList = append(wordList, word)
-	}
-	output = string(wordList)
-	return
-}
-func setValue(target interface{}, attr string, value interface{}) {
-	attrList := strings.Split(attr, ".")
-	var tempPointer reflect.Value
-	for deepLevel, targetAttr := range attrList {
-		isFirstAttr := deepLevel == 0
-		isLastAttr := deepLevel == len(attrList) - 1
-		targetAttr = stringFirstWordToUpper(targetAttr)
-		if isFirstAttr {
-			tempPointer = reflect.ValueOf(target).Elem()
-		}
-		tempPointer = tempPointer.FieldByName(targetAttr)
-		if isLastAttr {
-			tempPointer.Set(reflect.ValueOf(value))
-		}
-	}
-}
-
-type Author struct {
-		Name  string   `json:"name"`
-		A struct {
-			B int `json:"b"`
-		} `json:"a"`
-		Age   int      `json:"age",omitempty`
-		Likes []string `json:"likes"`
-		Hot bool `json:"hot"`
-	}
 func TestValue(t *testing.T) {
-	jsonstring := `{"name":"nimo", "likes": ["js", "go"]}`
+	Convey("Given some integer with a starting value", t, func() {
+		type Author struct {
+		Name  string   `json:"name"`
+		Age   int      `json:"age",omitempty`
+		IsFriendly bool `json:"is_firendly"`
+		Likes []string `json:"likes"`
+		Children struct {
+			Son string `json:"son"`
+			Daughter string `json:"daughter"`
+		} `json:"a"`
+		TestEmptyNumberNil bool
+		TestEmptyNumber int
+	}
 	var nimo Author
-	json.Unmarshal([]byte(jsonstring), &nimo)
-	type TjsonSchame struct { Default interface{} }
-	types := map[string]TjsonSchame{
-		//"age" : { Default: 18 },
-		"a.b" : { Default: 10},
+	jsonstring := `
+	{
+		"name":"nimo",
+		"likes": ["js", "go"]
 	}
-	for key, schema := range types {
-		attr := key
-		isEmptyValue := len(gjson.Get(jsonstring, key).Raw) == 0
-		if isEmptyValue && schema.Default != nil {
-			setValue(&nimo, attr, schema.Default)
-		}
-		fmt.Print("\r\n")
-		fmt.Print(nimo)
-		fmt.Print("\r\n")
-	}
+	`
+	Parse(jsonstring, &nimo, map[string]TypesItem{
+		"age" : { Default: 27},
+		"children.son" : { Default: "fifteen"},
+		"children.daughter" : { Default: "wood"},
+		"TestEmptyNumber?" : {},
+	})
+	Convey("Name: ", func() {
+		So(nimo.Name, ShouldEqual, "nimo")
+		So(nimo.Age, ShouldEqual, 27)
+		So(nimo.IsFriendly, ShouldEqual, false)
+		So(nimo.Likes[0], ShouldEqual, "js")
+		So(nimo.Likes[1], ShouldEqual, "go")
+		So(nimo.Children.Son, ShouldEqual, "fifteen")
+		So(nimo.Children.Daughter, ShouldEqual, "wood")
+		So(nimo.TestEmptyNumberNil, ShouldEqual, true)
+		So(nimo.TestEmptyNumber, ShouldEqual, 0)
+	})
+	})
 }
