@@ -45,7 +45,7 @@ func TestParse(t *testing.T) {
 	Convey("check",t,  func() {
 		checkTypes := map[string]TypesItem{
 			"age": {
-				check: func (data TypeItemCheckData) (message string, pass bool) {
+				Check: func (data TypeItemCheckData) (message string, pass bool) {
 					if data.valueNumber < 18 {
 						message = "未成年"; return
 					}
@@ -65,5 +65,19 @@ func TestParse(t *testing.T) {
 		correctQueryInfo, correctQueryPassFail := Parse(` { "age": 20 }`, &correctQuery, checkTypes)
 		So(correctQueryPassFail, ShouldEqual, false)
 		So(correctQueryInfo.Message, ShouldEqual, "")
+	})
+	Convey("requied",t,  func() {
+		type Query struct {
+			 Page string `json:"page"`
+		}
+		var query Query
+		queryTypes := map[string]TypesItem{
+			"page" : {
+				Label: "页码",
+			},
+		}
+		queryInfo, queryFail := Parse(`{}`, &query, queryTypes)
+		So(queryFail, ShouldEqual, true)
+		So(queryInfo.Message, ShouldEqual, "页码必填")
 	})
 }

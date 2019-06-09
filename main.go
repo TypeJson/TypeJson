@@ -44,7 +44,8 @@ func setValue(target interface{}, attr string, value interface{}) {
 }
 type TypesItem struct {
 	Default interface{}
-	check func(data TypeItemCheckData) (message string, pass bool)
+	Check func(data TypeItemCheckData) (message string, pass bool)
+	Label string
 }
 type TypeItemCheckData struct {
 	valueNumber float64
@@ -63,22 +64,27 @@ func Parse(jsonstring string, data interface{}, types map[string]TypesItem)(info
 		_ = targetValue
 		isEmptyValue := len(gjson.Get(jsonstring, key).Raw) == 0
 		attrLastWord := string([]byte(attr)[len(attr)-1])
-		isNotRequired := false
+		required := true
 		attrHasNotRequiredToken := attrLastWord == "?"
 		if attrHasNotRequiredToken {
-			isNotRequired = true
+			required = false
 			removeNotRequiredTokenAttr := string([]byte(attr)[:len(attr)-1])
 			attr = removeNotRequiredTokenAttr
 		}
-		shouldSetAttrNil := isEmptyValue && isNotRequired
+		shouldSetAttrNil := isEmptyValue && !required
 		shouldSetDefaultValue := !shouldSetAttrNil && schema.Default != nil
-		shouldCheckValue := !shouldSetAttrNil && schema.check != nil
+		shouldCheckValue := !shouldSetAttrNil && schema.Check != nil
 		if  shouldSetAttrNil {
 			attr = attr + "Nil"
 			setValue(data, attr, true)
 		}
 		if shouldSetDefaultValue {
 			setValue(data, attr, schema.Default)
+		}
+		if required && targetResult.Value() == nil && !shouldSetDefaultValue {
+				fail = true
+				info.Message = schema.Label + "必填"
+				break
 		}
 		if (shouldCheckValue) {
 			var data TypeItemCheckData
@@ -91,12 +97,12 @@ func Parse(jsonstring string, data interface{}, types map[string]TypesItem)(info
 				case gjson.False:
 					data.valueBool = targetResult.Bool()
 				case gjson.Null:
-					log.Fatal("typejson: " + attr + " is nil!")
+					log.Fatal("typejson: " + schema.Label + ":" + attr + " is nil!")
 				default:
 					fmt.Print(targetResult.Type)
 					log.Fatal("@TODO: 需要加上 object array")
 			}
-			message, pass := schema.check(data)
+			message, pass := schema.Check(data)
 			if !pass {
 				fail = true
 				info.Message = message
