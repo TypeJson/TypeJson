@@ -40,28 +40,32 @@ func setValue(target interface{}, attr string, value interface{}) {
 		}
 	}
 }
-type TypesItem struct { Default interface{} }
+type TypesItem struct {
+	Default interface{}
+	check interface{}
+}
 
 func Parse(jsonstring string, data interface{}, types map[string]TypesItem){
 	json.Unmarshal([]byte(jsonstring), data)
 	for key, schema := range types {
 		attr := key
 		isEmptyValue := len(gjson.Get(jsonstring, key).Raw) == 0
-		if isEmptyValue {
-			attrLastWord := string([]byte(attr)[len(attr)-1])
-			isNotRequired := false
-			if attrLastWord == "?" {
-				isNotRequired = true
-				attr = string([]byte(attr)[:len(attr)-1])
-			}
-			if isNotRequired {
-				attr = attr + "Nil"
-				setValue(data, attr, true)
-			} else {
-				if schema.Default != nil {
-					setValue(data, attr, schema.Default)
-				}
-			}
+		attrLastWord := string([]byte(attr)[len(attr)-1])
+		isNotRequired := false
+		attrHasNotRequiredToken := attrLastWord == "?"
+		if attrHasNotRequiredToken {
+			isNotRequired = true
+			removeNotRequiredTokenAttr := string([]byte(attr)[:len(attr)-1])
+			attr = removeNotRequiredTokenAttr
+		}
+		shouldSetAttrNil := isEmptyValue && isNotRequired
+		shouldSetDefaultValue := !shouldSetAttrNil && schema.Default != nil
+		if  shouldSetAttrNil {
+			attr = attr + "Nil"
+			setValue(data, attr, true)
+		}
+		if shouldSetDefaultValue {
+			setValue(data, attr, schema.Default)
 		}
 	}
 }

@@ -18,19 +18,31 @@ func TestValue(t *testing.T) {
 		} `json:"a"`
 		TestEmptyNumberNil bool
 		TestEmptyNumber int
+		validDemoA int
+		validDemoB int
 	}
 	var nimo Author
 	jsonstring := `
 	{
 		"name":"nimo",
-		"likes": ["js", "go"]
+		"likes": ["js", "go"],
+		"validDemoA": 10,
+		"validDemoB": 20
 	}
 	`
 	Parse(jsonstring, &nimo, map[string]TypesItem{
 		"age" : { Default: 27},
 		"children.son" : { Default: "fifteen"},
 		"children.daughter" : { Default: "wood"},
-		"TestEmptyNumber?" : {},
+		"testEmptyNumber?" : {},
+		"validDemoA": {
+			check: func (value int) (failMessage string, pass bool) {
+				if (value < 18) {
+					return "未成年", false
+				}
+				return "", true
+			},
+		},
 	})
 	Convey("Name: ", func() {
 		So(nimo.Name, ShouldEqual, "nimo")
