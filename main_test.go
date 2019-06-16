@@ -4,7 +4,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 )
-
 func TestParse(t *testing.T) {
 	Convey("default NotRequired",t,  func() {
 		type Author struct {
@@ -26,7 +25,8 @@ func TestParse(t *testing.T) {
 			"likes": ["js", "go"]
 		}
 		`
-		Parse(jsonstring, &nimo, map[string]TypesItem{
+		tjson, _ := Create()
+		tjson.parse(jsonstring, &nimo, Types{
 			"age" : { Default: 27},
 			"children.son" : { Default: "fifteen"},
 			"children.daughter" : { Default: "wood"},
@@ -43,7 +43,7 @@ func TestParse(t *testing.T) {
 		So(nimo.TestEmptyNumber, ShouldEqual, 0)
 	})
 	Convey("check",t,  func() {
-		checkTypes := map[string]TypesItem{
+		checkTypes := Types{
 			"age": {
 				Check: func (data TypeItemCheckData) (message string, pass bool) {
 					if data.valueNumber < 18 {
@@ -56,13 +56,14 @@ func TestParse(t *testing.T) {
 		type Query struct {
 			age int
 		}
+		tjson, _ := Create()
 		var wrongQuery Query
-		queryInfo, queryPassFail := Parse(` { "age": 10 }`, &wrongQuery, checkTypes)
+		queryInfo, queryPassFail := tjson.parse(` { "age": 10 }`, &wrongQuery, checkTypes)
 		So(queryPassFail, ShouldEqual, true)
 		So(queryInfo.Message, ShouldEqual, "未成年")
 
 		var correctQuery Query
-		correctQueryInfo, correctQueryPassFail := Parse(` { "age": 20 }`, &correctQuery, checkTypes)
+		correctQueryInfo, correctQueryPassFail := tjson.parse(` { "age": 20 }`, &correctQuery, checkTypes)
 		So(correctQueryPassFail, ShouldEqual, false)
 		So(correctQueryInfo.Message, ShouldEqual, "")
 	})
@@ -71,13 +72,30 @@ func TestParse(t *testing.T) {
 			 Page string `json:"page"`
 		}
 		var query Query
-		queryTypes := map[string]TypesItem{
+		queryTypes := Types{
 			"page" : {
 				Label: "页码",
 			},
 		}
-		queryInfo, queryFail := Parse(`{}`, &query, queryTypes)
+		tjson, _:= Create()
+		queryInfo, queryFail := tjson.parse(`{}`, &query, queryTypes)
 		So(queryFail, ShouldEqual, true)
 		So(queryInfo.Message, ShouldEqual, "页码必填")
+	})
+	Convey("default NotRequired", t, func() {
+		DefaultLabelList := LabelList{
+			"name": "名字",
+		}
+		tjson, _ := Create()
+		tjson.setDefaultLabel(DefaultLabelList)
+		type People struct {
+			 Name string `json:"name"`
+		}
+		var some People
+		parseInfo, fail := tjson.parse(`{"name":""}`, &some, Types{
+			"name": {},
+		})
+		So(fail, ShouldEqual, true)
+		So(parseInfo.Message, ShouldEqual, "名字必填")
 	})
 }

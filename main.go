@@ -10,9 +10,23 @@ import (
 	"unicode"
 )
 
-type TokenInfo struct {
-	Type string
-	Value string
+type TypeJSON struct {
+	defaultLabelList LabelList
+}
+type ParseInfo struct {
+	Message string
+}
+type LabelList map[string]string
+type Types map[string]TypesItem
+type TypesItem struct {
+	Default interface{}
+	Check func(data TypeItemCheckData) (message string, pass bool)
+	Label string
+}
+type TypeItemCheckData struct {
+	valueNumber float64
+	valueString string
+	valueBool bool
 }
 func stringFirstWordToUpper(str string) (output string) {
 	wordList := []rune{}
@@ -42,36 +56,31 @@ func setValue(target interface{}, attr string, value interface{}) {
 		}
 	}
 }
-type TypesItem struct {
-	Default interface{}
-	Check func(data TypeItemCheckData) (message string, pass bool)
-	Label string
+
+func Create () (tjson TypeJSON , err error){
+	return tjson, nil
 }
-type TypeItemCheckData struct {
-	valueNumber float64
-	valueString string
-	valueBool bool
+func (self *TypeJSON) setDefaultLabel( labelList LabelList) {
+	self.defaultLabelList = labelList
 }
-type ParseInfo struct {
-	Message string
-}
-func Parse(jsonstring string, data interface{}, types map[string]TypesItem)(info ParseInfo, fail bool){
+func (self *TypeJSON) parse(jsonstring string, data interface{}, types Types)(info ParseInfo, fail bool){
 	json.Unmarshal([]byte(jsonstring), data)
 	for key, schema := range types {
 		attr := key
+		attrList := strings.Split(attr, ".")
+		lastAttr := attrList[len(attrList)-1:][0]
 		targetResult := gjson.Get(jsonstring, key)
-		targetValue := targetResult.Value()
-		_ = targetValue
-		isEmptyValue := len(gjson.Get(jsonstring, key).Raw) == 0
+		isUndefinedValue := len(targetResult.Raw) == 0
 		attrLastWord := string([]byte(attr)[len(attr)-1])
 		required := true
+		isEmptyValue := false
 		attrHasNotRequiredToken := attrLastWord == "?"
 		if attrHasNotRequiredToken {
 			required = false
 			removeNotRequiredTokenAttr := string([]byte(attr)[:len(attr)-1])
 			attr = removeNotRequiredTokenAttr
 		}
-		shouldSetAttrNil := isEmptyValue && !required
+		shouldSetAttrNil := isUndefinedValue && !required
 		shouldSetDefaultValue := !shouldSetAttrNil && schema.Default != nil
 		shouldCheckValue := !shouldSetAttrNil && schema.Check != nil
 		if  shouldSetAttrNil {
@@ -81,9 +90,33 @@ func Parse(jsonstring string, data interface{}, types map[string]TypesItem)(info
 		if shouldSetDefaultValue {
 			setValue(data, attr, schema.Default)
 		}
-		if required && targetResult.Value() == nil && !shouldSetDefaultValue {
+		if (isUndefinedValue) {
+			isEmptyValue = true
+		} else {
+			switch targetResult.Type {
+				case gjson.Number:
+				case gjson.String:
+					// targetResult.raw = `""`
+					if len(targetResult.Raw) <=2 { isEmptyValue = true}
+				case gjson.True:
+				case gjson.False:
+				case gjson.Null:
+					isEmptyValue = true
+				default:
+						fmt.Print(targetResult.Type)
+						log.Fatal("@TODO: 需要加上 object array 1")
+			}
+		}
+		if required  && isEmptyValue && !shouldSetDefaultValue {
+				var currentLabel string
+				var currentDefaultLabel = self.defaultLabelList[lastAttr]
+				if (len(schema.Label) != 0 ) {
+					currentLabel = schema.Label
+				} else if len(currentDefaultLabel) != 0 {
+					currentLabel = currentDefaultLabel
+				}
 				fail = true
-				info.Message = schema.Label + "必填"
+				info.Message = currentLabel + "必填"
 				break
 		}
 		if (shouldCheckValue) {
@@ -100,7 +133,7 @@ func Parse(jsonstring string, data interface{}, types map[string]TypesItem)(info
 					log.Fatal("typejson: " + schema.Label + ":" + attr + " is nil!")
 				default:
 					fmt.Print(targetResult.Type)
-					log.Fatal("@TODO: 需要加上 object array")
+					log.Fatal("@TODO: 需要加上 object array 2")
 			}
 			message, pass := schema.Check(data)
 			if !pass {
