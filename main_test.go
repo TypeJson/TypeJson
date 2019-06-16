@@ -25,7 +25,7 @@ func TestParse(t *testing.T) {
 			"likes": ["js", "go"]
 		}
 		`
-		tjson, _ := Create()
+		tjson := Create()
 		tjson.parse(jsonstring, &nimo, Types{
 			"age" : { Default: 27},
 			"children.son" : { Default: "fifteen"},
@@ -42,8 +42,8 @@ func TestParse(t *testing.T) {
 		So(nimo.TestEmptyNumberNil, ShouldEqual, true)
 		So(nimo.TestEmptyNumber, ShouldEqual, 0)
 	})
-	Convey("check",t,  func() {
-		checkTypes := Types{
+	Convey("Check",t,  func() {
+		CheckTypes := Types{
 			"age": {
 				Check: func (data TypeItemCheckData) (message string, pass bool) {
 					if data.valueNumber < 18 {
@@ -56,14 +56,14 @@ func TestParse(t *testing.T) {
 		type Query struct {
 			age int
 		}
-		tjson, _ := Create()
+		tjson := Create()
 		var wrongQuery Query
-		queryInfo, queryPassFail := tjson.parse(` { "age": 10 }`, &wrongQuery, checkTypes)
+		queryInfo, queryPassFail := tjson.parse(` { "age": 10 }`, &wrongQuery, CheckTypes)
 		So(queryPassFail, ShouldEqual, true)
 		So(queryInfo.Message, ShouldEqual, "未成年")
 
 		var correctQuery Query
-		correctQueryInfo, correctQueryPassFail := tjson.parse(` { "age": 20 }`, &correctQuery, checkTypes)
+		correctQueryInfo, correctQueryPassFail := tjson.parse(` { "age": 20 }`, &correctQuery, CheckTypes)
 		So(correctQueryPassFail, ShouldEqual, false)
 		So(correctQueryInfo.Message, ShouldEqual, "")
 	})
@@ -77,24 +77,55 @@ func TestParse(t *testing.T) {
 				Label: "页码",
 			},
 		}
-		tjson, _:= Create()
+		tjson := Create()
 		queryInfo, queryFail := tjson.parse(`{}`, &query, queryTypes)
 		So(queryFail, ShouldEqual, true)
 		So(queryInfo.Message, ShouldEqual, "页码必填")
 	})
+	//Convey("array", t, func() {
+	//	type Some struct {
+	//		PersonList []struct {
+	//			Name string `json:"name"`
+	//			Age  int    `json:"age"`
+	//		} `json:"personList"`
+	//	}
+	//	json := `{
+	//		"personList": [
+	//		{
+	//			"name": "nimo",
+	//			"age": 27
+	//		},
+	//		{
+	//			"name": "nico",
+	//			"age": 18
+	//		}
+	//		]
+	//	}`
+	//	tjson := Create()
+	//	var some Some
+	//	types = Types{
+	//		"personList.*.name": {
+	//
+	//		}
+	//	}
+	//	tjson.parse(json, &some, )
+	//})
+}
+func TestParselabel(t *testing.T) {
 	Convey("default NotRequired", t, func() {
 		DefaultLabelList := LabelList{
 			"name": "名字",
 		}
-		tjson, _ := Create()
+		tjson := Create()
 		tjson.setDefaultLabel(DefaultLabelList)
 		type People struct {
 			 Name string `json:"name"`
 		}
 		var some People
-		parseInfo, fail := tjson.parse(`{"name":""}`, &some, Types{
+		types := Types{
 			"name": {},
-		})
+		}
+		parseInfo, fail := tjson.parse(`{"name":""}`, &some, types)
 		So(fail, ShouldEqual, true)
 		So(parseInfo.Message, ShouldEqual, "名字必填")
 	})

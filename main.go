@@ -57,8 +57,8 @@ func setValue(target interface{}, attr string, value interface{}) {
 	}
 }
 
-func Create () (tjson TypeJSON , err error){
-	return tjson, nil
+func Create () (tjson TypeJSON){
+	return tjson
 }
 func (self *TypeJSON) setDefaultLabel( labelList LabelList) {
 	self.defaultLabelList = labelList
