@@ -12,6 +12,7 @@ import (
 
 type TypeJSON struct {
 	defaultLabelList LabelList
+	a string
 }
 type ParseInfo struct {
 	Message string
@@ -40,21 +41,41 @@ func stringFirstWordToUpper(str string) (output string) {
 	return
 }
 
-func setValue(target interface{}, attr string, value interface{}) {
+//type SetValueTarget struct {
+//	 Type string `eum: "interface" "reflect.Value"`
+//	 Value interface{}
+//}
+func setValue(target reflect.Value, attr string, value interface{}) {
 	attrList := strings.Split(attr, ".")
-	var tempPointer reflect.Value
+	var tempValue reflect.Value
+	shouldBreak := false
 	for deepLevel, targetAttr := range attrList {
 		isFirstAttr := deepLevel == 0
 		isLastAttr := deepLevel == len(attrList) - 1
-		targetAttr = stringFirstWordToUpper(targetAttr)
-		if isFirstAttr {
-			tempPointer = reflect.ValueOf(target).Elem()
+		if targetAttr == "*" {
+			//      = ["personList", "*", "vip"][1+1:]
+			subAttrList := attrList[deepLevel+1:]
+			subAttr := strings.Join(subAttrList, ".")
+			subArrayLen := tempValue.Len()
+			for i := 0; i < subArrayLen; i++ {
+				subArrayItem := tempValue.Index(i)
+				_ = subArrayItem
+				_ = subAttr
+				setValue(subArrayItem.Addr(), subAttr, value)
+			}
+			shouldBreak = true; break
+		} else {
+			targetAttr = stringFirstWordToUpper(targetAttr)
 		}
-		tempPointer = tempPointer.FieldByName(targetAttr)
+		if isFirstAttr {
+			tempValue = target.Elem()
+		}
+		tempValue = tempValue.FieldByName(targetAttr)
 		if isLastAttr {
-			tempPointer.Set(reflect.ValueOf(value))
+			tempValue.Set(reflect.ValueOf(value))
 		}
 	}
+	if shouldBreak { return }
 }
 
 func Create () (tjson TypeJSON){
@@ -85,10 +106,10 @@ func (self *TypeJSON) parse(jsonstring string, data interface{}, types Types)(in
 		shouldCheckValue := !shouldSetAttrNil && schema.Check != nil
 		if  shouldSetAttrNil {
 			attr = attr + "Nil"
-			setValue(data, attr, true)
+			setValue(reflect.ValueOf(data), attr, true)
 		}
 		if shouldSetDefaultValue {
-			setValue(data, attr, schema.Default)
+			setValue(reflect.ValueOf(data), attr, schema.Default)
 		}
 		if (isUndefinedValue) {
 			isEmptyValue = true
