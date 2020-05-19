@@ -15,7 +15,7 @@ func (s SpecStringMinLen) TJ(r *tj.Rule) {
 		Path:              "name",
 		MinRuneLen:        4,
 	})
-}
+};
 type SpecStringMinLenCustomMessage struct {
 	Name string
 }
@@ -24,7 +24,7 @@ func (s SpecStringMinLenCustomMessage) TJ(r *tj.Rule) {
 		Name:              "姓名",
 		Path:              "name",
 		MinRuneLen:        4,
-		MinRuneLenMessage: "姓名长度不能小于四位",
+		MinRuneLenMessage: "姓名长度不能小于{{MinRuneLen}}位,你输入的是{{Value}}",
 	})
 }
 func Test_SpecString_MinLen(t *testing.T) {
@@ -40,6 +40,6 @@ func Test_SpecString_MinLen(t *testing.T) {
 	})
 	as.Equal(c.Scan(SpecStringMinLenCustomMessage{Name:"ni"}), tj.Report{
 		Fail:    true,
-		Message: "姓名长度不能小于四位",
+		Message: "姓名长度不能小于4位,你输入的是ni",
 	})
 }

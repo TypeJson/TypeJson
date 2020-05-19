@@ -1,6 +1,11 @@
 package tj
 
+import (
+	"github.com/hoisie/mustache"
+)
+
 type StringSpec struct {
+	Value interface{}
 	Name string
 	Path string
 	MinRuneLen int
@@ -17,11 +22,12 @@ func (spec StringSpec) CheckMinRuneLen(v string, r *Rule) (fail bool) {
 	if !pass {
 		message := ""
 		if r.MessageIsEmpty(spec.MinRuneLenMessage) {
-			message = r.Format.StringMinRuneLen(spec.Name, spec.MinRuneLen)
+			message = r.Format.StringMinRuneLen(spec.Name, v, spec.MinRuneLen)
 		} else {
 			message = spec.MinRuneLenMessage
 		}
-		r.Break(message)
+		spec.Value = v
+		r.Break(mustache.Render(message, spec))
 	}
 	return r.Fail
 }
