@@ -1,6 +1,8 @@
 package tj
 
 import (
+	"fmt"
+	"log"
 	"reflect"
 )
 type Checker struct {
@@ -38,10 +40,28 @@ func (checker Checker) reflectScan(rValue reflect.Value, rType reflect.Type) (re
 		rValueItem := rValue.Field(i)
 		structField := rType.Field(i)
 		switch structField.Type.Kind() {
+		case reflect.String:
+			tjValue,hasTJ := structField.Tag.Lookup("tj")
+			if hasTJ && tjValue == "" {
+				log.Print("typejson/go: " + structField.Name + ` struct tag tj can not be tj:"" (empty string)\r\n` + fmt.Sprintf("%#v", rValue.Interface()))
+			}
+			if tjValue == "nr" { continue }
+			if rValueItem.IsZero() {
+				stringRequredMessage := structField.Tag.Get("sr")
+				message := ""
+				if stringRequredMessage != "" {
+					message = stringRequredMessage
+				} else {
+					message = checker.Format.StringRequiredFailMessage(structField.Name)
+				}
+				report.Fail = true
+				report.Message = message
+				return
+			}
 		case reflect.Struct:
 			report = checker.reflectScan(rValueItem, structField.Type)
 			if report.Fail {
-				return report
+				return
 			}
 		}
 	}

@@ -5,13 +5,13 @@ import (
 )
 
 type Formatter interface {
-	StringRequiredFailMessage(name string, value string) string
+	StringRequiredFailMessage(field string) string
 	StringMinRuneLen(name string, value string, length int) string
 }
 type CNFormat struct {
 }
-func (CNFormat) StringRequiredFailMessage(name string, value string) string {
-	return name  + "必填"
+func (CNFormat) StringRequiredFailMessage(field string) string {
+	return field  + "必填"
 }
 func (CNFormat) StringMinRuneLen(name string, value string, length int) string {
 	return name + "长度不能小于" + gconv.IntString(length)
