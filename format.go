@@ -9,7 +9,7 @@ type Formatter interface {
 	StringMinRuneLen(name string, value string, length int) string
 	StringMaxRuneLen(name string, value string, length int) string
 	StringPattern   (name string, value string, pattern []string, failPattern string) string
-	StringBadPattern   (name string, value string, badPattern []string, failBadPattern string) string
+	StringBanPattern   (name string, value string, banPattern []string, failBanPattern string) string
 }
 type CNFormat struct {
 }
@@ -25,6 +25,6 @@ func (CNFormat) StringMaxRuneLen(name string, value string, length int) string {
 func (CNFormat) StringPattern(name string, value string, pattern []string, failPattern string) string {
 	return name + "格式错误"
 }
-func (CNFormat) StringBadPattern(name string, value string, badPattern []string, failBadPattern string) string {
+func (CNFormat) StringBanPattern(name string, value string, banPattern []string, failBanPattern string) string {
 	return name + "格式错误"
 }

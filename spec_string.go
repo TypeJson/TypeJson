@@ -38,8 +38,8 @@ func (r *Rule) String(v string, spec StringSpec) {
 	}
 	if spec.CheckMinRuneLen(v, r) { return }
 	if spec.CheckMaxRuneLen(v, r) { return }
-	if spec.CheckPattern(v, r)    { return }
-	if spec.CheckBadPattern(v, r)    { return }
+	if spec.CheckPattern   (v, r) { return }
+	if spec.CheckBanPattern(v, r) { return }
 }
 
 func (spec StringSpec) CheckMaxRuneLen(v string, r *Rule) (fail bool) {
@@ -94,7 +94,7 @@ func (spec StringSpec) CheckPattern(v string, r *Rule) (fail bool) {
 	}
 	return r.Fail
 }
-func (spec StringSpec) CheckBadPattern(v string, r *Rule) (fail bool) {
+func (spec StringSpec) CheckBanPattern(v string, r *Rule) (fail bool) {
 	if len(spec.BanPattern) == 0 {
 		return false
 	}
@@ -104,7 +104,7 @@ func (spec StringSpec) CheckBadPattern(v string, r *Rule) (fail bool) {
 		if !pass {
 			message := ""
 			if r.MessageIsEmpty(spec.PatternMessage) {
-				message = r.Format.StringBadPattern(spec.Name, v, spec.BanPattern, pattern)
+				message = r.Format.StringBanPattern(spec.Name, v, spec.BanPattern, pattern)
 			} else {
 				message = spec.PatternMessage
 			}

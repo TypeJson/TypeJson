@@ -113,6 +113,7 @@ func (s SpecStringPattern) TJ (r *tj.Rule){
 	r.String(s.More, tj.StringSpec{
 		AllowEmpty: true,
 		Name: "更多",
+		Path: "more",
 		Pattern:[]string{`^a`, `a$`},
 		PatternMessage: "{{Name}}开始结尾必须是a",
 	})
@@ -157,4 +158,86 @@ func TestSpecStringPattern(t *testing.T) {
 			Message: "标题必须以abc为结尾",
 		})
 	}
+}
+
+type SpecStringBadPattern struct {
+	Name string
+	Title string
+	More string
+}
+func (s SpecStringBadPattern) TJ (r *tj.Rule){
+	r.String(s.Name, tj.StringSpec{
+		Name:              "姓名",
+		Path:              "name",
+		BanPattern:		   []string{"fuck"},
+		PatternMessage: "{{Name}}不允许出现敏感词",
+	})
+	r.String(s.Title, tj.StringSpec{
+		Name: "标题",
+		Path: "title",
+		BanPattern: []string{`fuck`},
+		PatternMessage: "{{Name}}不允许出现敏感词",
+	})
+	r.String(s.More, tj.StringSpec{
+		AllowEmpty: true,
+		Name: "更多",
+		Path: "more",
+		BanPattern: []string{`fuck`, `dick`},
+		PatternMessage: "{{Name}}不允许出现敏感词:{{BanPattern}}",
+	})
+}
+func TestSpecStringBanPattern(t *testing.T) {
+	as := gtest.NewAS(t)
+	c := tj.NewCN()
+	{
+		as.Equal(c.Scan(SpecStringBadPattern{
+			Name: "nimo",
+			Title: "nimo",
+			More: "nimo",
+		}), tj.Report{
+			Fail:    false,
+			Message: "",
+		})
+	}
+	{
+		as.Equal(c.Scan(SpecStringBadPattern{
+			Name: "fuck",
+			Title: "nimo",
+			More: "nimo",
+		}), tj.Report{
+			Fail:    true,
+			Message: "姓名不允许出现敏感词",
+		})
+	}
+	{
+		as.Equal(c.Scan(SpecStringBadPattern{
+			Name: "nimo",
+			Title: "fuck",
+			More: "nimo",
+		}), tj.Report{
+			Fail:    true,
+			Message: "标题不允许出现敏感词",
+		})
+	}
+	{
+		as.Equal(c.Scan(SpecStringBadPattern{
+			Name: "nimo",
+			Title: "nimo",
+			More: "fuck",
+		}), tj.Report{
+			Fail:    true,
+			Message: "更多不允许出现敏感词:[fuck dick]",
+		})
+	}
+	{
+		as.Equal(c.Scan(SpecStringBadPattern{
+			Name: "nimo",
+			Title: "nimo",
+			More: "dick",
+		}), tj.Report{
+			Fail:    true,
+			Message: "更多不允许出现敏感词:[fuck dick]",
+		})
+	}
+
 }
