@@ -7,23 +7,39 @@ import (
 )
 
 type StringSpec struct {
-	Value interface{}
 	Name string
 	Path string
+	AllowEmpty bool
 	MinRuneLen int
 	MinRuneLenMessage string
 	MaxRuneLen int
 	MaxRuneLenMessage string
-	Pattern string
+	Pattern []string
+	BanPattern []string
 	PatternMessage string
-	BanPattern string
 	Enum []string
 }
-
+type stringSpecRender struct {
+	Value string
+	StringSpec
+}
+func (spec StringSpec) render (message string, value string) string {
+	context := stringSpecRender{
+		Value: value,
+		StringSpec: spec,
+	}
+	return mustache.Render(message, context)
+}
 func (r *Rule) String(v string, spec StringSpec) {
+	if r.Fail { return }
+	if v == "" && !spec.AllowEmpty {
+		r.Break(r.Format.StringNotAllowEmpty(spec.Name))
+		return
+	}
 	if spec.CheckMinRuneLen(v, r) { return }
 	if spec.CheckMaxRuneLen(v, r) { return }
-	if spec.CheckPattern(v, r){ return }
+	if spec.CheckPattern(v, r)    { return }
+	if spec.CheckBadPattern(v, r)    { return }
 }
 
 func (spec StringSpec) CheckMaxRuneLen(v string, r *Rule) (fail bool) {
@@ -39,8 +55,7 @@ func (spec StringSpec) CheckMaxRuneLen(v string, r *Rule) (fail bool) {
 		} else {
 			message = spec.MaxRuneLenMessage
 		}
-		spec.Value = v
-		r.Break(mustache.Render(message, spec))
+		r.Break(spec.render(message, v))
 	}
 	return r.Fail
 }
@@ -55,26 +70,47 @@ func (spec StringSpec) CheckMinRuneLen(v string, r *Rule) (fail bool) {
 		} else {
 			message = spec.MinRuneLenMessage
 		}
-		spec.Value = v
-		r.Break(mustache.Render(message, spec))
+		r.Break(spec.render(message, v))
 	}
 	return r.Fail
 }
 func (spec StringSpec) CheckPattern(v string, r *Rule) (fail bool) {
-	if spec.Pattern == "" {
-		r.Break("pattern can not be empty string, value: " + v)
+	if len(spec.Pattern) == 0 {
+		return false
 	}
-	matched, err := regexp.Match(spec.Pattern, []byte(v)) ; ge.Check(err)
-	pass := matched
-	if !pass {
-		message := ""
-		if r.MessageIsEmpty(spec.PatternMessage) {
-			message = r.Format.StringPattern(spec.Name, v, spec.Pattern)
-		} else {
-			message = spec.PatternMessage
+	for _, pattern := range spec.Pattern {
+		matched, err := regexp.MatchString(pattern, v) ; ge.Check(err)
+		pass := matched
+		if !pass {
+			message := ""
+			if r.MessageIsEmpty(spec.PatternMessage) {
+				message = r.Format.StringPattern(spec.Name, v, spec.Pattern, pattern)
+			} else {
+				message = spec.PatternMessage
+			}
+			r.Break(spec.render(message, v))
+			break
 		}
-		spec.Value = v
-		r.Break(mustache.Render(message, spec))
+	}
+	return r.Fail
+}
+func (spec StringSpec) CheckBadPattern(v string, r *Rule) (fail bool) {
+	if len(spec.BanPattern) == 0 {
+		return false
+	}
+	for _, pattern := range spec.BanPattern {
+		matched, err := regexp.MatchString(pattern, v) ; ge.Check(err)
+		pass := !matched
+		if !pass {
+			message := ""
+			if r.MessageIsEmpty(spec.PatternMessage) {
+				message = r.Format.StringBadPattern(spec.Name, v, spec.BanPattern, pattern)
+			} else {
+				message = spec.PatternMessage
+			}
+			r.Break(spec.render(message, v))
+			break
+		}
 	}
 	return r.Fail
 }

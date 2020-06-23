@@ -11,6 +11,7 @@ github.com/og/x v0.0.0-20200102034047-45ae3cda9792/go.mod h1:9CPknqm4VhKaQKRcllH
 github.com/og/x v0.0.0-20200508064944-2ad6048904ab h1:ZZC75KWQNpL05hjRobeFeRic/mjg6ecvFPGMkXxKkgQ=
 github.com/og/x v0.0.0-20200508064944-2ad6048904ab/go.mod h1:FCkdxiGT08CmLFFLnZhFhsgPBBkv4lQ1lU7XyzTunQg=
 github.com/og/x/json v0.0.0-20190911074324-46c1b3e856fb/go.mod h1:bZrrjE/DSoVtxVFWtDHU1BD82zwiheYZSSjCFWHEm70=
+github.com/og/x/json v0.0.0-20200328105910-6c65c720db7e h1:AOAgJN6pLHk0RAPnn2wXh/WMKubF8bFlIGmRVqdWRCs=
 github.com/og/x/json v0.0.0-20200328105910-6c65c720db7e/go.mod h1:gcYUIgxOtIITHViuIilfUch7h7Stzt2+4J1neXDhDto=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=

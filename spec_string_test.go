@@ -53,7 +53,7 @@ func Test_SpecString_MinLen(t *testing.T) {
 }
 
 type SpecStringMaxLen struct {
-	Name string `tj:"nr"`
+	Name string 
 }
 func (s SpecStringMaxLen) TJ(r *tj.Rule) {
 	r.String(s.Name, tj.StringSpec{
@@ -95,13 +95,26 @@ func Test_SpecString_MaxLen(t *testing.T) {
 }
 type SpecStringPattern struct {
 	Name string
+	Title string
+	More string 
 }
 func (s SpecStringPattern) TJ (r *tj.Rule){
 	r.String(s.Name, tj.StringSpec{
 		Name:              "姓名",
 		Path:              "name",
-		Pattern:		   "^nimo",
-		PatternMessage:    "",
+		Pattern:		   []string{"^nimo"},
+	})
+	r.String(s.Title, tj.StringSpec{
+		Name: "标题",
+		Path: "title",
+		Pattern: []string{`abc$`},
+		PatternMessage: "{{Name}}必须以abc为结尾",
+	})
+	r.String(s.More, tj.StringSpec{
+		AllowEmpty: true,
+		Name: "更多",
+		Pattern:[]string{`^a`, `a$`},
+		PatternMessage: "{{Name}}开始结尾必须是a",
 	})
 }
 func TestSpecStringPattern(t *testing.T) {
@@ -110,17 +123,38 @@ func TestSpecStringPattern(t *testing.T) {
 	{
 		as.Equal(c.Scan(SpecStringPattern{
 			Name: "nimo",
+			Title: "abc",
 		}), tj.Report{
-			Fail:    false,
-			Message: "",
+			Fail:    true,
+			Message: "更多开始结尾必须是a",
 		})
 	}
 	{
 		as.Equal(c.Scan(SpecStringPattern{
 			Name: "xnimo",
+			Title: "abc",
 		}), tj.Report{
 			Fail:    true,
 			Message: "姓名格式错误",
+		})
+	}
+	{
+		as.Equal(c.Scan(SpecStringPattern{
+			Name: "nimo",
+			Title: "abcd",
+		}), tj.Report{
+			Fail:    true,
+			Message: "标题必须以abc为结尾",
+		})
+	}
+	{
+		as.Equal(c.Scan(SpecStringPattern{
+			Name: "nimo",
+			Title: "abcd",
+			More: "c",
+		}), tj.Report{
+			Fail:    true,
+			Message: "标题必须以abc为结尾",
 		})
 	}
 }
