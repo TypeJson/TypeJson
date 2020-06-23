@@ -2,6 +2,8 @@ package tj
 
 import (
 	"github.com/hoisie/mustache"
+	ge "github.com/og/x/error"
+	"regexp"
 )
 
 type StringSpec struct {
@@ -21,6 +23,7 @@ type StringSpec struct {
 func (r *Rule) String(v string, spec StringSpec) {
 	if spec.CheckMinRuneLen(v, r) { return }
 	if spec.CheckMaxRuneLen(v, r) { return }
+	if spec.CheckPattern(v, r){ return }
 }
 
 func (spec StringSpec) CheckMaxRuneLen(v string, r *Rule) (fail bool) {
@@ -51,6 +54,24 @@ func (spec StringSpec) CheckMinRuneLen(v string, r *Rule) (fail bool) {
 			message = r.Format.StringMinRuneLen(spec.Name, v, spec.MinRuneLen)
 		} else {
 			message = spec.MinRuneLenMessage
+		}
+		spec.Value = v
+		r.Break(mustache.Render(message, spec))
+	}
+	return r.Fail
+}
+func (spec StringSpec) CheckPattern(v string, r *Rule) (fail bool) {
+	if spec.Pattern == "" {
+		r.Break("pattern can not be empty string, value: " + v)
+	}
+	matched, err := regexp.Match(spec.Pattern, []byte(v)) ; ge.Check(err)
+	pass := matched
+	if !pass {
+		message := ""
+		if r.MessageIsEmpty(spec.PatternMessage) {
+			message = r.Format.StringPattern(spec.Name, v, spec.Pattern)
+		} else {
+			message = spec.PatternMessage
 		}
 		spec.Value = v
 		r.Break(mustache.Render(message, spec))

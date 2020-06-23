@@ -93,3 +93,34 @@ func Test_SpecString_MaxLen(t *testing.T) {
 		Message: "姓名长度不能大于4位,你输入的是nimoc",
 	})
 }
+type SpecStringPattern struct {
+	Name string
+}
+func (s SpecStringPattern) TJ (r *tj.Rule){
+	r.String(s.Name, tj.StringSpec{
+		Name:              "姓名",
+		Path:              "name",
+		Pattern:		   "^nimo",
+		PatternMessage:    "",
+	})
+}
+func TestSpecStringPattern(t *testing.T) {
+	as := gtest.NewAS(t)
+	c := tj.NewCN()
+	{
+		as.Equal(c.Scan(SpecStringPattern{
+			Name: "nimo",
+		}), tj.Report{
+			Fail:    false,
+			Message: "",
+		})
+	}
+	{
+		as.Equal(c.Scan(SpecStringPattern{
+			Name: "xnimo",
+		}), tj.Report{
+			Fail:    true,
+			Message: "姓名格式错误",
+		})
+	}
+}
