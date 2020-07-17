@@ -2,6 +2,7 @@ package tj
 
 import (
 	gconv "github.com/og/x/conv"
+	"strings"
 )
 
 type Formatter interface {
@@ -10,6 +11,7 @@ type Formatter interface {
 	StringMaxRuneLen(name string, value string, length int) string
 	StringPattern   (name string, value string, pattern []string, failPattern string) string
 	StringBanPattern   (name string, value string, banPattern []string, failBanPattern string) string
+	StringEnum (name string, value string, enum []string) string
 }
 type CNFormat struct {
 }
@@ -27,4 +29,7 @@ func (CNFormat) StringPattern(name string, value string, pattern []string, failP
 }
 func (CNFormat) StringBanPattern(name string, value string, banPattern []string, failBanPattern string) string {
 	return name + "格式错误"
+}
+func (CNFormat) StringEnum(name string, value string, enum []string) string {
+	return name + "参数错误，只允许("+ strings.Join(enum, " ") + ")"
 }

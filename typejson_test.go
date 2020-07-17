@@ -12,7 +12,6 @@ type RequiredOne struct {
 func (v RequiredOne) TJ(r *tj.Rule){
 	r.String(v.Name, tj.StringSpec{
 		Name: "姓名",
-		Path: "name",
 	})
 }
 func Test_RequiredOne (t *testing.T) {
@@ -34,11 +33,9 @@ type RequiredTwo struct {
 func (v RequiredTwo) TJ(r *tj.Rule){
 	r.String(v.Name, tj.StringSpec{
 		Name: "姓名",
-		Path: "name",
 	})
 	r.String(v.Title, tj.StringSpec{
 		Name: "标题",
-		Path: "title",
 	})
 }
 func Test_RequiredTwo (t *testing.T) {
@@ -64,12 +61,10 @@ type RequiredThree struct {
 func (v RequiredThree) TJ(r *tj.Rule){
 	r.String(v.Name, tj.StringSpec{
 		Name: "姓名",
-		Path: "name",
 		AllowEmpty: true,
 	})
 	r.String(v.Title, tj.StringSpec{
 		Name: "标题",
-		Path: "title",
 	})
 }
 func Test_RequiredThree (t *testing.T) {
@@ -91,11 +86,9 @@ type RequiredFour struct {
 func (v RequiredFour) TJ(r *tj.Rule){
 	r.String(v.Name, tj.StringSpec{
 		Name: "姓名",
-		Path: "name",
 	})
 	r.String(v.Title, tj.StringSpec{
 		Name: "标题",
-		Path: "title",
 	})
 }
 func Test_RequiredFour (t *testing.T) {

@@ -12,7 +12,6 @@ type SpecStringMinLen struct {
 func (s SpecStringMinLen) TJ(r *tj.Rule) {
 	r.String(s.Name, tj.StringSpec{
 		Name:              "姓名",
-		Path:              "name",
 		MinRuneLen:        4,
 	})
 };
@@ -22,7 +21,6 @@ type SpecStringMinLenCustomMessage struct {
 func (s SpecStringMinLenCustomMessage) TJ(r *tj.Rule) {
 	r.String(s.Name, tj.StringSpec{
 		Name:              "姓名",
-		Path:              "name",
 		MinRuneLen:        4,
 		MinRuneLenMessage: "姓名长度不能小于{{MinRuneLen}}位,你输入的是{{Value}}",
 	})
@@ -58,7 +56,6 @@ type SpecStringMaxLen struct {
 func (s SpecStringMaxLen) TJ(r *tj.Rule) {
 	r.String(s.Name, tj.StringSpec{
 		Name:              "姓名",
-		Path:              "name",
 		MaxRuneLen:        4,
 	})
 };
@@ -68,7 +65,6 @@ type SpecStringMaxLenCustomMessage struct {
 func (s SpecStringMaxLenCustomMessage) TJ(r *tj.Rule) {
 	r.String(s.Name, tj.StringSpec{
 		Name:              "姓名",
-		Path:              "name",
 		MaxRuneLen:        4,
 		MaxRuneLenMessage: "姓名长度不能大于{{MaxRuneLen}}位,你输入的是{{Value}}",
 	})
@@ -101,19 +97,16 @@ type SpecStringPattern struct {
 func (s SpecStringPattern) TJ (r *tj.Rule){
 	r.String(s.Name, tj.StringSpec{
 		Name:              "姓名",
-		Path:              "name",
 		Pattern:		   []string{"^nimo"},
 	})
 	r.String(s.Title, tj.StringSpec{
 		Name: "标题",
-		Path: "title",
 		Pattern: []string{`abc$`},
 		PatternMessage: "{{Name}}必须以abc为结尾",
 	})
 	r.String(s.More, tj.StringSpec{
 		AllowEmpty: true,
 		Name: "更多",
-		Path: "more",
 		Pattern:[]string{`^a`, `a$`},
 		PatternMessage: "{{Name}}开始结尾必须是a",
 	})
@@ -160,28 +153,25 @@ func TestSpecStringPattern(t *testing.T) {
 	}
 }
 
-type SpecStringBadPattern struct {
+type SpecStringBanPattern struct {
 	Name string
 	Title string
 	More string
 }
-func (s SpecStringBadPattern) TJ (r *tj.Rule){
+func (s SpecStringBanPattern) TJ (r *tj.Rule){
 	r.String(s.Name, tj.StringSpec{
 		Name:              "姓名",
-		Path:              "name",
 		BanPattern:		   []string{"fuck"},
 		PatternMessage: "{{Name}}不允许出现敏感词",
 	})
 	r.String(s.Title, tj.StringSpec{
 		Name: "标题",
-		Path: "title",
 		BanPattern: []string{`fuck`},
 		PatternMessage: "{{Name}}不允许出现敏感词",
 	})
 	r.String(s.More, tj.StringSpec{
 		AllowEmpty: true,
 		Name: "更多",
-		Path: "more",
 		BanPattern: []string{`fuck`, `dick`},
 		PatternMessage: "{{Name}}不允许出现敏感词:{{BanPattern}}",
 	})
@@ -190,7 +180,7 @@ func TestSpecStringBanPattern(t *testing.T) {
 	as := gtest.NewAS(t)
 	c := tj.NewCN()
 	{
-		as.Equal(c.Scan(SpecStringBadPattern{
+		as.Equal(c.Scan(SpecStringBanPattern{
 			Name: "nimo",
 			Title: "nimo",
 			More: "nimo",
@@ -200,7 +190,7 @@ func TestSpecStringBanPattern(t *testing.T) {
 		})
 	}
 	{
-		as.Equal(c.Scan(SpecStringBadPattern{
+		as.Equal(c.Scan(SpecStringBanPattern{
 			Name: "fuck",
 			Title: "nimo",
 			More: "nimo",
@@ -210,7 +200,7 @@ func TestSpecStringBanPattern(t *testing.T) {
 		})
 	}
 	{
-		as.Equal(c.Scan(SpecStringBadPattern{
+		as.Equal(c.Scan(SpecStringBanPattern{
 			Name: "nimo",
 			Title: "fuck",
 			More: "nimo",
@@ -220,7 +210,7 @@ func TestSpecStringBanPattern(t *testing.T) {
 		})
 	}
 	{
-		as.Equal(c.Scan(SpecStringBadPattern{
+		as.Equal(c.Scan(SpecStringBanPattern{
 			Name: "nimo",
 			Title: "nimo",
 			More: "fuck",
@@ -230,7 +220,7 @@ func TestSpecStringBanPattern(t *testing.T) {
 		})
 	}
 	{
-		as.Equal(c.Scan(SpecStringBadPattern{
+		as.Equal(c.Scan(SpecStringBanPattern{
 			Name: "nimo",
 			Title: "nimo",
 			More: "dick",
@@ -239,5 +229,33 @@ func TestSpecStringBanPattern(t *testing.T) {
 			Message: "更多不允许出现敏感词:[fuck dick]",
 		})
 	}
-
+}
+type SpecStringEnum struct {
+	Type string
+}
+func (SpecStringEnum) Dict() (dict struct{
+	Type struct {
+		Normal string
+		Danger string
+	}
+}) {
+	dict.Type.Normal = "normal"
+	dict.Type.Danger = "danger"
+	return
+}
+func (s SpecStringEnum) TJ(r *tj.Rule) {
+	r.String(s.Type, tj.StringSpec{
+		Name: "类型",
+		Enum: tj.EnumValues(s.Dict().Type),
+	})
+}
+func TestStringSpec_CheckEnum (t *testing.T) {
+	as := gtest.NewAS(t)
+	c := tj.NewCN()
+	as.Equal(c.Scan(SpecStringEnum{
+		Type: "normal1",
+	}), tj.Report{
+		Fail:    true,
+		Message: "类型参数错误，只允许(normal danger)",
+	})
 }

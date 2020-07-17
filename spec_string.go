@@ -3,12 +3,12 @@ package tj
 import (
 	"github.com/hoisie/mustache"
 	ge "github.com/og/x/error"
+	glist "github.com/og/x/list"
 	"regexp"
 )
 
 type StringSpec struct {
 	Name string
-	Path string
 	AllowEmpty bool
 	MinRuneLen int
 	MinRuneLenMessage string
@@ -40,6 +40,7 @@ func (r *Rule) String(v string, spec StringSpec) {
 	if spec.CheckMaxRuneLen(v, r) { return }
 	if spec.CheckPattern   (v, r) { return }
 	if spec.CheckBanPattern(v, r) { return }
+	if spec.CheckEnum(v, r) {return}
 }
 
 func (spec StringSpec) CheckMaxRuneLen(v string, r *Rule) (fail bool) {
@@ -111,6 +112,18 @@ func (spec StringSpec) CheckBanPattern(v string, r *Rule) (fail bool) {
 			r.Break(spec.render(message, v))
 			break
 		}
+	}
+	return r.Fail
+}
+func (spec StringSpec) CheckEnum(v string, r *Rule) (fail bool) {
+	if len(spec.Enum) == 0 {
+		return false
+	}
+	sList := glist.StringList{Value:spec.Enum}
+	pass := sList.In(v)
+	if !pass {
+		message := r.Format.StringEnum(spec.Name, v, spec.Enum)
+		r.Break(spec.render(message, v))
 	}
 	return r.Fail
 }
