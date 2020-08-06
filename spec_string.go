@@ -50,12 +50,9 @@ func (spec StringSpec) CheckMaxRuneLen(v string, r *Rule) (fail bool) {
 	length := len([]rune(v))
 	pass := length <= spec.MaxRuneLen
 	if !pass {
-		message := ""
-		if r.MessageIsEmpty(spec.MaxRuneLenMessage) {
-			message = r.Format.StringMaxRuneLen(spec.Name, v, spec.MaxRuneLen)
-		} else {
-			message = spec.MaxRuneLenMessage
-		}
+		message := r.CreateMessage(spec.MaxRuneLenMessage, func() string {
+			return r.Format.StringMaxRuneLen(spec.Name, v, spec.MaxRuneLen)
+		})
 		r.Break(spec.render(message, v))
 	}
 	return r.Fail
@@ -65,12 +62,9 @@ func (spec StringSpec) CheckMinRuneLen(v string, r *Rule) (fail bool) {
 	length := len([]rune(v))
 	pass := length >= spec.MinRuneLen
 	if !pass {
-		message := ""
-		if r.MessageIsEmpty(spec.MinRuneLenMessage) {
-			message = r.Format.StringMinRuneLen(spec.Name, v, spec.MinRuneLen)
-		} else {
-			message = spec.MinRuneLenMessage
-		}
+		message := r.CreateMessage(spec.MinRuneLenMessage, func() string {
+			return r.Format.StringMinRuneLen(spec.Name, v, spec.MinRuneLen)
+		})
 		r.Break(spec.render(message, v))
 	}
 	return r.Fail
@@ -83,12 +77,9 @@ func (spec StringSpec) CheckPattern(v string, r *Rule) (fail bool) {
 		matched, err := regexp.MatchString(pattern, v) ; ge.Check(err)
 		pass := matched
 		if !pass {
-			message := ""
-			if r.MessageIsEmpty(spec.PatternMessage) {
-				message = r.Format.StringPattern(spec.Name, v, spec.Pattern, pattern)
-			} else {
-				message = spec.PatternMessage
-			}
+			message := r.CreateMessage(spec.PatternMessage, func() string {
+				return r.Format.StringPattern(spec.Name, v, spec.Pattern, pattern)
+			})
 			r.Break(spec.render(message, v))
 			break
 		}
@@ -103,12 +94,9 @@ func (spec StringSpec) CheckBanPattern(v string, r *Rule) (fail bool) {
 		matched, err := regexp.MatchString(pattern, v) ; ge.Check(err)
 		pass := !matched
 		if !pass {
-			message := ""
-			if r.MessageIsEmpty(spec.PatternMessage) {
-				message = r.Format.StringBanPattern(spec.Name, v, spec.BanPattern, pattern)
-			} else {
-				message = spec.PatternMessage
-			}
+			message := r.CreateMessage(spec.PatternMessage, func() string {
+				return r.Format.StringBanPattern(spec.Name, v, spec.BanPattern, pattern)
+			})
 			r.Break(spec.render(message, v))
 			break
 		}
