@@ -20,10 +20,10 @@ type StringSpec struct {
 	Enum []string
 }
 type stringSpecRender struct {
-	Value string
+	Value interface{}
 	StringSpec
 }
-func (spec StringSpec) render (message string, value string) string {
+func (spec StringSpec) render (message string, value interface{}) string {
 	context := stringSpecRender{
 		Value: value,
 		StringSpec: spec,
@@ -69,39 +69,64 @@ func (spec StringSpec) CheckMinRuneLen(v string, r *Rule) (fail bool) {
 	}
 	return r.Fail
 }
-func (spec StringSpec) CheckPattern(v string, r *Rule) (fail bool) {
-	if len(spec.Pattern) == 0 {
+type patternData struct {
+	Pattern []string
+	PatternMessage string
+	Name string
+}
+func checkPattern(data patternData, render func(string, interface{}) string, v string, r *Rule) (fail bool) {
+	if len(data.Pattern) == 0 {
 		return false
 	}
-	for _, pattern := range spec.Pattern {
+	for _, pattern := range data.Pattern {
 		matched, err := regexp.MatchString(pattern, v) ; ge.Check(err)
 		pass := matched
 		if !pass {
-			message := r.CreateMessage(spec.PatternMessage, func() string {
-				return r.Format.StringPattern(spec.Name, v, spec.Pattern, pattern)
+			message := r.CreateMessage(data.PatternMessage, func() string {
+				return r.Format.Pattern(data.Name, v, data.Pattern, pattern)
 			})
-			r.Break(spec.render(message, v))
+			r.Break(render(message, v))
 			break
 		}
 	}
 	return r.Fail
 }
-func (spec StringSpec) CheckBanPattern(v string, r *Rule) (fail bool) {
-	if len(spec.BanPattern) == 0 {
+
+func (spec StringSpec) CheckPattern(v string, r *Rule) (fail bool) {
+	return checkPattern(patternData{
+		Pattern:        spec.Pattern,
+		PatternMessage: spec.PatternMessage,
+		Name:           spec.Name,
+	}, spec.render, v, r)
+}
+type banPatternData struct {
+	BanPattern []string
+	PatternMessage string
+	Name string
+}
+func checkBanPattern(data banPatternData, render func(string, interface{}) string, v string, r *Rule) (fail bool) {
+	if len(data.BanPattern) == 0 {
 		return false
 	}
-	for _, pattern := range spec.BanPattern {
+	for _, pattern := range data.BanPattern {
 		matched, err := regexp.MatchString(pattern, v) ; ge.Check(err)
 		pass := !matched
 		if !pass {
-			message := r.CreateMessage(spec.PatternMessage, func() string {
-				return r.Format.StringBanPattern(spec.Name, v, spec.BanPattern, pattern)
+			message := r.CreateMessage(data.PatternMessage, func() string {
+				return r.Format.BanPattern(data.Name, v, data.BanPattern, pattern)
 			})
-			r.Break(spec.render(message, v))
+			r.Break(render(message, v))
 			break
 		}
 	}
-	return r.Fail
+	return
+}
+func (spec StringSpec) CheckBanPattern(v string, r *Rule) (fail bool) {
+	return checkBanPattern(banPatternData{
+		BanPattern:     spec.BanPattern,
+		PatternMessage: spec.PatternMessage,
+		Name:           spec.Name,
+	}, spec.render, v, r)
 }
 func (spec StringSpec) CheckEnum(v string, r *Rule) (fail bool) {
 	if len(spec.Enum) == 0 {

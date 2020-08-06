@@ -54,7 +54,7 @@ type IntMin struct {
 func (v IntMin) TJ(r *Rule) {
 	r.Int(v.Age, IntSpec{
 		Name: "年龄",
-		Min: 18,
+		Min: Int(18),
 	})
 }
 func TestIntMin(t *testing.T) {
@@ -77,10 +77,11 @@ func TestIntMin(t *testing.T) {
 type IntMinMessage struct {
 	Age int
 }
+
 func (v IntMinMessage) TJ(r *Rule) {
 	r.Int(v.Age, IntSpec{
 		Name: "年龄",
-		Min: 18,
+		Min: Int(18),
 		MinMessage:"年龄不可以小于{{Min}}",
 	})
 }
@@ -108,7 +109,7 @@ type IntMax struct {
 func (v IntMax) TJ(r *Rule) {
 	r.Int(v.Age, IntSpec{
 		Name: "年龄",
-		Max: 18,
+		Max: Int(18),
 	})
 }
 func TestIntMax(t *testing.T) {
@@ -134,7 +135,7 @@ type IntMaxMessage struct {
 func (v IntMaxMessage) TJ(r *Rule) {
 	r.Int(v.Age, IntSpec{
 		Name: "年龄",
-		Max: 18,
+		Max: Int(18),
 		MaxMessage:"年龄不可以大于{{Max}}",
 	})
 }
@@ -152,5 +153,56 @@ func TestIntMaxMessage(t *testing.T) {
 	as.Equal(checker.Scan(IntMaxMessage{Age:19}), Report{
 		Fail:    true,
 		Message: "年龄不可以大于18",
+	})
+}
+type IntPattern struct {
+	Number int
+}
+func (v IntPattern) TJ (r *Rule) {
+	r.Int(v.Number, IntSpec{
+		Name: "号码",
+		Pattern: []string{`^138`},
+		PatternMessage: "{{Name}}必须以138开头",
+	})
+}
+func TestIntPattern(t *testing.T) {
+	as := gtest.NewAS(t)
+	_=as
+	checker := NewCN()
+	as.Equal(checker.Scan(IntPattern{Number: 11384}), Report{
+		Fail:    true,
+		Message: "号码必须以138开头",
+	})
+	as.Equal(checker.Scan(IntPattern{Number: 138}), Report{
+		Fail:    false,
+		Message: "",
+	})
+}
+
+type IntBanPattern struct {
+	Number int
+}
+func (v IntBanPattern) TJ (r *Rule) {
+	r.Int(v.Number, IntSpec{
+		Name: "号码",
+		BanPattern: []string{`^138`, `^178`},
+		PatternMessage: "{{Name}}不允许以138和178开头",
+	})
+}
+func TestIntBanPattern(t *testing.T) {
+	as := gtest.NewAS(t)
+	_=as
+	checker := NewCN()
+	as.Equal(checker.Scan(IntBanPattern{Number: 11384}), Report{
+		Fail:    false,
+		Message: "",
+	})
+	as.Equal(checker.Scan(IntBanPattern{Number: 138}), Report{
+		Fail:    true,
+		Message: "号码不允许以138和178开头",
+	})
+	as.Equal(checker.Scan(IntBanPattern{Number: 178}), Report{
+		Fail:    true,
+		Message: "号码不允许以138和178开头",
 	})
 }

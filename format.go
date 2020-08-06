@@ -9,8 +9,8 @@ type Formatter interface {
 	StringNotAllowEmpty(name string) string
 	StringMinRuneLen(name string, value string, length int) string
 	StringMaxRuneLen(name string, value string, length int) string
-	StringPattern   (name string, value string, pattern []string, failPattern string) string
-	StringBanPattern   (name string, value string, banPattern []string, failBanPattern string) string
+	Pattern   (name string, value string, pattern []string, failPattern string) string
+	BanPattern   (name string, value string, banPattern []string, failBanPattern string) string
 	StringEnum (name string, value string, enum []string) string
 	IntNotAllowEmpty(name string) string
 	IntMin(name string, v int, min int) string
@@ -27,10 +27,10 @@ func (CNFormat) StringMinRuneLen(name string, value string, length int) string {
 func (CNFormat) StringMaxRuneLen(name string, value string, length int) string {
 	return name + "长度不能大于" + gconv.IntString(length)
 }
-func (CNFormat) StringPattern(name string, value string, pattern []string, failPattern string) string {
+func (CNFormat) Pattern(name string, value string, pattern []string, failPattern string) string {
 	return name + "格式错误"
 }
-func (CNFormat) StringBanPattern(name string, value string, banPattern []string, failBanPattern string) string {
+func (CNFormat) BanPattern(name string, value string, banPattern []string, failBanPattern string) string {
 	return name + "格式错误"
 }
 func (CNFormat) StringEnum(name string, value string, enum []string) string {
@@ -45,3 +45,4 @@ func (CNFormat) IntMin(name string, value int, min int) string {
 func (CNFormat) IntMax(name string, value int, max int) string {
 	return name + "不能大于" + gconv.IntString(max)
 }
+
