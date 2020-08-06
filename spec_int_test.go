@@ -100,3 +100,57 @@ func TestIntMinMessage(t *testing.T) {
 		Message: "",
 	})
 }
+
+
+type IntMax struct {
+	Age int
+}
+func (v IntMax) TJ(r *Rule) {
+	r.Int(v.Age, IntSpec{
+		Name: "年龄",
+		Max: 18,
+	})
+}
+func TestIntMax(t *testing.T) {
+	as := gtest.NewAS(t)
+	checker := NewCN()
+	as.Equal(checker.Scan(IntMax{Age:17}), Report{
+		Fail:    false,
+		Message: "",
+	})
+	as.Equal(checker.Scan(IntMax{Age:18}), Report{
+		Fail:    false,
+		Message: "",
+	})
+	as.Equal(checker.Scan(IntMax{Age:19}), Report{
+		Fail:    true,
+		Message: "年龄不能大于18",
+	})
+}
+
+type IntMaxMessage struct {
+	Age int
+}
+func (v IntMaxMessage) TJ(r *Rule) {
+	r.Int(v.Age, IntSpec{
+		Name: "年龄",
+		Max: 18,
+		MaxMessage:"年龄不可以大于{{Max}}",
+	})
+}
+func TestIntMaxMessage(t *testing.T) {
+	as := gtest.NewAS(t)
+	checker := NewCN()
+	as.Equal(checker.Scan(IntMaxMessage{Age:17}), Report{
+		Fail:    false,
+		Message: "",
+	})
+	as.Equal(checker.Scan(IntMaxMessage{Age:18}), Report{
+		Fail:    false,
+		Message: "",
+	})
+	as.Equal(checker.Scan(IntMaxMessage{Age:19}), Report{
+		Fail:    true,
+		Message: "年龄不可以大于18",
+	})
+}

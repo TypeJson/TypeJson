@@ -14,6 +14,7 @@ type Formatter interface {
 	StringEnum (name string, value string, enum []string) string
 	IntNotAllowEmpty(name string) string
 	IntMin(name string, v int, min int) string
+	IntMax(name string, v int, max int) string
 }
 type CNFormat struct {
 }
@@ -40,4 +41,7 @@ func (CNFormat) IntNotAllowEmpty(name string) string {
 }
 func (CNFormat) IntMin(name string, value int, min int) string {
 	return name + "不能小于" + gconv.IntString(min)
+}
+func (CNFormat) IntMax(name string, value int, max int) string {
+	return name + "不能大于" + gconv.IntString(max)
 }
