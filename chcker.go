@@ -1,6 +1,7 @@
 package tj
 
 import (
+	"log"
 	"reflect"
 )
 type Checker struct {
@@ -21,6 +22,29 @@ func (checker Checker) Scan(data Data) (report Report) {
 }
 func (checker Checker) reflectScan(rValue reflect.Value, rType reflect.Type) (report Report) {
 	checkMethod := rValue.MethodByName("TJ")
+	if !checkMethod.IsValid() {
+		{
+			tjMethod := rValue.MethodByName("tj")
+			if tjMethod.IsValid() {
+				checkMethod = tjMethod
+				log.Print("typejson: you write error method name" +rType.Name() + ".tj()")
+			}
+		}
+		{
+			TjMethod := rValue.MethodByName("Tj")
+			if TjMethod.IsValid() {
+				checkMethod = TjMethod
+				log.Print("typejson: you write error method name" +rType.Name() + ".Tj()")
+			}
+		}
+		{
+			tJMethod := rValue.MethodByName("tJ")
+			if tJMethod.IsValid() {
+				checkMethod = tJMethod
+				log.Print("typejson: you write error method name" +rType.Name() + ".tJ()")
+			}
+		}
+	}
 	if checkMethod.IsValid() {
 		rule := Rule{
 			Format: checker.Format,

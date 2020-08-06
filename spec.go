@@ -1,14 +1,6 @@
 package tj
 
-type IntSpec struct {
-	Name string
-	Path string
-	Min int
-	Max int
-}
-func (r *Rule)Int(v int, spec IntSpec) {
 
-}
 type ArraySpec struct {
 	Name string
 	Path string

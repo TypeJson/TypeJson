@@ -13,13 +13,13 @@ func (r *Rule) Break(message string) {
 	r.Fail = true
 	r.Message = message
 }
-func (r Rule) MessageIsEmpty(message string) (empty bool) {
+func (r Rule) CreateMessage(message string, customMessage func () string) string {
 	message = strings.TrimPrefix(message, " ")
 	message = strings.TrimSuffix(message, " ")
 	if len(message) == 0 {
-		return true
+		return customMessage()
 	}
-	return false
+	return message
 }
 func (r *Rule) Check(pass bool, message string) {
 	if !pass {

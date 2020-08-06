@@ -12,6 +12,8 @@ type Formatter interface {
 	StringPattern   (name string, value string, pattern []string, failPattern string) string
 	StringBanPattern   (name string, value string, banPattern []string, failBanPattern string) string
 	StringEnum (name string, value string, enum []string) string
+	IntNotAllowEmpty(name string) string
+	IntMin(name string, v int, min int) string
 }
 type CNFormat struct {
 }
@@ -32,4 +34,10 @@ func (CNFormat) StringBanPattern(name string, value string, banPattern []string,
 }
 func (CNFormat) StringEnum(name string, value string, enum []string) string {
 	return name + "参数错误，只允许("+ strings.Join(enum, " ") + ")"
+}
+func (CNFormat) IntNotAllowEmpty(name string) string {
+	return name + "不允许为0"
+}
+func (CNFormat) IntMin(name string, value int, min int) string {
+	return name + "不能小于" + gconv.IntString(min)
 }
