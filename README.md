@@ -1,9 +1,11 @@
-package tj_test
+# typejson
 
+> 类型安全的结构体校验器，远离不类型安全的 struct tag 验证。
+
+```go
+package main
 import (
 	tj "github.com/typejson/go"
-	"log"
-	"testing"
 )
 type RequestCreateUser struct {
 	Name string
@@ -54,7 +56,7 @@ func (v RequestCreateUserAddress) TJ(r *tj.Rule) {
 	})
 }
 
-func ExampleQuickStart() {
+func main() {
 	checker := tj.NewCN()
 	createUser := RequestCreateUser{
 		Name: "张三",
@@ -73,6 +75,4 @@ func ExampleQuickStart() {
 		log.Panic("验证通过")
 	}
 }
-func Test_ExampleQuickStart(t *testing.T) {
-	ExampleQuickStart()
-}
+```
