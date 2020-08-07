@@ -5,48 +5,48 @@ import (
 	"testing"
 )
 
-type IntNotAllowZero struct {
-	Age int
-}
-func (v IntNotAllowZero) TJ(r *Rule) {
-	r.Int(v.Age, IntSpec{
-		Name: "年龄",
-	})
-}
-func TestIntNotAllowZero(t *testing.T) {
-	as := gtest.NewAS(t)
-	checker := NewCN()
-	as.Equal(checker.Scan(IntNotAllowZero{Age:0}), Report{
-		Fail:    true,
-		Message: "年龄不允许为0",
-	})
-	as.Equal(checker.Scan(IntNotAllowZero{Age:1}), Report{
-		Fail:    false,
-		Message: "",
-	})
-}
+// type IntNotAllowZero struct {
+// 	Age int
+// }
+// func (v IntNotAllowZero) TJ(r *Rule) {
+// 	r.Int(v.Age, IntSpec{
+// 		Name: "年龄",
+// 	})
+// }
+// func TestIntNotAllowZero(t *testing.T) {
+// 	as := gtest.NewAS(t)
+// 	checker := NewCN()
+// 	as.Equal(checker.Scan(IntNotAllowZero{Age:0}), Report{
+// 		Fail:    true,
+// 		Message: "年龄不允许为0",
+// 	})
+// 	as.Equal(checker.Scan(IntNotAllowZero{Age:1}), Report{
+// 		Fail:    false,
+// 		Message: "",
+// 	})
+// }
 
-type IntAllowZero struct {
-	Age int
-}
-func (v IntAllowZero) TJ(r *Rule) {
-	r.Int(v.Age, IntSpec{
-		Name: "年龄",
-		AllowZero: true,
-	})
-}
-func TestIntAllowZero(t *testing.T) {
-	as := gtest.NewAS(t)
-	checker := NewCN()
-	as.Equal(checker.Scan(IntAllowZero{Age:0}), Report{
-		Fail:    false,
-		Message: "",
-	})
-	as.Equal(checker.Scan(IntAllowZero{Age:1}), Report{
-		Fail:    false,
-		Message: "",
-	})
-}
+// type IntAllowZero struct {
+// 	Age int
+// }
+// func (v IntAllowZero) TJ(r *Rule) {
+// 	r.Int(v.Age, IntSpec{
+// 		Name: "年龄",
+// 		AllowZero: true,
+// 	})
+// }
+// func TestIntAllowZero(t *testing.T) {
+// 	as := gtest.NewAS(t)
+// 	checker := NewCN()
+// 	as.Equal(checker.Scan(IntAllowZero{Age:0}), Report{
+// 		Fail:    false,
+// 		Message: "",
+// 	})
+// 	as.Equal(checker.Scan(IntAllowZero{Age:1}), Report{
+// 		Fail:    false,
+// 		Message: "",
+// 	})
+// }
 
 type IntMin struct {
 	Age int
@@ -155,6 +155,45 @@ func TestIntMaxMessage(t *testing.T) {
 		Message: "年龄不可以大于18",
 	})
 }
+type IntMinMax struct {
+	Age int
+}
+func (v IntMinMax) TJ (r *Rule) {
+	r.Int(v.Age, IntSpec{
+		Name: "年龄",
+		Min: Int(2),
+		Max: Int(4),
+	})
+}
+func TestIntMinMax(t *testing.T) {
+	as := gtest.NewAS(t)
+	checker := NewCN()
+	as.Equal(checker.Scan(IntMinMax{Age: 0}), Report{
+		Fail:    true,
+		Message: "年龄不能小于2",
+	})
+	as.Equal(checker.Scan(IntMinMax{Age: 1}), Report{
+		Fail:    true,
+		Message: "年龄不能小于2",
+	})
+	as.Equal(checker.Scan(IntMinMax{Age: 2}), Report{
+		Fail:    false,
+		Message: "",
+	})
+	as.Equal(checker.Scan(IntMinMax{Age: 3}), Report{
+		Fail:    false,
+		Message: "",
+	})
+	as.Equal(checker.Scan(IntMinMax{Age: 4}), Report{
+		Fail:    false,
+		Message: "",
+	})
+	as.Equal(checker.Scan(IntMinMax{Age: 5}), Report{
+		Fail:    true,
+		Message: "年龄不能大于4",
+	})
+
+}
 type IntPattern struct {
 	Number int
 }
@@ -167,7 +206,6 @@ func (v IntPattern) TJ (r *Rule) {
 }
 func TestIntPattern(t *testing.T) {
 	as := gtest.NewAS(t)
-	_=as
 	checker := NewCN()
 	as.Equal(checker.Scan(IntPattern{Number: 11384}), Report{
 		Fail:    true,

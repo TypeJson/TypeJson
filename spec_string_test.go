@@ -259,3 +259,55 @@ func TestStringSpec_CheckEnum (t *testing.T) {
 		Message: "类型参数错误，只允许(normal danger)",
 	})
 }
+type SpecStringMinMax struct {
+	Name string
+}
+func (v SpecStringMinMax) TJ(r *tj.Rule) {
+	r.String(v.Name, tj.StringSpec{
+		Name:              "姓名",
+		AllowEmpty: true,
+		MinRuneLen:        2,
+		MaxRuneLen:        4,
+	})
+}
+func TestSpectStringMinMax(t *testing.T) {
+	as := gtest.NewAS(t)
+	c := tj.NewCN()
+	as.Equal(c.Scan(SpecStringMinMax{
+		Name: "",
+	}), tj.Report{
+		Fail:    true,
+		Message: "姓名长度不能小于2",
+	})
+	as.Equal(c.Scan(SpecStringMinMax{
+		Name: "1",
+	}), tj.Report{
+		Fail:    true,
+		Message: "姓名长度不能小于2",
+	})
+	as.Equal(c.Scan(SpecStringMinMax{
+		Name: "12",
+	}), tj.Report{
+		Fail:    false,
+		Message: "",
+	})
+	as.Equal(c.Scan(SpecStringMinMax{
+		Name: "123",
+	}), tj.Report{
+		Fail:    false,
+		Message: "",
+	})
+	as.Equal(c.Scan(SpecStringMinMax{
+		Name: "1234",
+	}), tj.Report{
+		Fail:    false,
+		Message: "",
+	})
+	as.Equal(c.Scan(SpecStringMinMax{
+		Name: "12345",
+	}), tj.Report{
+		Fail:    true,
+		Message: "姓名长度不能大于4",
+	})
+
+}

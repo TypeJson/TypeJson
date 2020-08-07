@@ -7,8 +7,7 @@ import (
 
 type IntSpec struct {
 	Name string
-	AllowZero bool
-	Unsigned bool
+	// AllowZero bool // 暂时取消 AllowZero，目的是降低使用者学习成本，观察一段时间后再决定是否完全去掉 (2020年08月07日 by @nimoc)
 	Min OptionInt
 	MinMessage string
 	Max OptionInt
@@ -30,10 +29,10 @@ func (spec IntSpec) render (message string, value interface{}) string {
 }
 func (r *Rule) Int(v int, spec IntSpec) {
 	if r.Fail {return}
-	if v == 0 && !spec.AllowZero {
-		r.Break(r.Format.IntNotAllowEmpty(spec.Name))
-		return
-	}
+	// if v == 0 && !spec.AllowZero {
+	// 	r.Break(r.Format.IntNotAllowEmpty(spec.Name))
+	// 	return
+	// }
 	if spec.CheckMin(v, r) { return }
 	if spec.CheckMax(v ,r) { return }
 	if spec.CheckPattern(v, r) {return}

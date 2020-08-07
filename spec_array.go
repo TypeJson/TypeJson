@@ -2,10 +2,9 @@ package tj
 
 import (
 	"github.com/hoisie/mustache"
-	"log"
-	"reflect"
 )
 
+// 不实现 AllowEmpty 因为与 MinLen 实现重复。会增加使用者学习成本
 type ArraySpec struct {
 	Name string
 	Path string
@@ -14,14 +13,10 @@ type ArraySpec struct {
 	MaxLen OptionInt
 	MaxLenMessage string
 }
-func (r *Rule) Array(v interface{}, spec ArraySpec){
-	rValue := reflect.ValueOf(v)
-	if rValue.Kind() != reflect.Slice {
-		log.Print("r.Array(v []Type) v must be slice")
-		return
-	}
-	if spec.CheckMinLen(rValue.Len(), r) {return}
-	if spec.CheckMaxLen(rValue.Len(), r) {return}
+func (r *Rule) Array(length int, spec ArraySpec){
+	if r.Fail { return }
+	if spec.CheckMinLen(length, r) {return}
+	if spec.CheckMaxLen(length, r) {return}
 }
 type arraySpecRender struct {
 	Value interface{}
@@ -42,7 +37,7 @@ func (spec ArraySpec) CheckMinLen(v int, r *Rule) (fail bool) {
 	pass := v >= min
 	if !pass {
 		message := r.CreateMessage(spec.MinLenMessage, func() string {
-			return r.Format.IntMinLen(spec.Name, v, min)
+			return r.Format.ArrayMinLen(spec.Name, v, min)
 		})
 		r.Break(spec.render(message, v))
 	}
@@ -56,7 +51,7 @@ func (spec ArraySpec) CheckMaxLen(v int, r *Rule) (fail bool) {
 	pass := v <= max
 	if !pass {
 		message := r.CreateMessage(spec.MaxLenMessage, func() string {
-			return r.Format.IntMaxLen(spec.Name, v, max)
+			return r.Format.ArrayMaxLen(spec.Name, v, max)
 		})
 		r.Break(spec.render(message, v))
 	}
