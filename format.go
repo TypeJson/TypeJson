@@ -16,8 +16,7 @@ type Formatter interface {
 	IntMin(name string, v int, min int) string
 	IntMax(name string, v int, max int) string
 }
-type CNFormat struct {
-}
+type CNFormat struct {}
 func (CNFormat) StringNotAllowEmpty(name string) string {
 	return name  + "必填"
 }

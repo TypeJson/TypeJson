@@ -4,26 +4,7 @@ import (
 	"github.com/hoisie/mustache"
 	gconv "github.com/og/x/conv"
 )
-// option int simulate int? (int or nil)
-// tj.Int(18) equal OptionInt(valid: true, int: 18)
-type OptionInt struct {
-	valid bool
-	int int
-}
-func (o OptionInt) Valid() bool {
-	return o.valid
-}
-func (o OptionInt) String() string {
-	if !o.valid {return ""}
-	return gconv.IntString(o.int)
-}
-func (o OptionInt) Unwrap() int {
-	if o.valid {return o.int}
-	panic("OptionInt: valid is false, can not unwrap")
-}
-func Int(i int) OptionInt {
-	return OptionInt{true, i}
-}
+
 type IntSpec struct {
 	Name string
 	AllowZero bool
@@ -60,12 +41,10 @@ func (r *Rule) Int(v int, spec IntSpec) {
 	return
 }
 func (spec IntSpec) CheckMin(v int, r *Rule) (fail bool) {
-	var min int
-	if spec.Min.Valid() {
-		min = spec.Min.Unwrap()
-	} else {
+	if !spec.Min.Valid() {
 		return
 	}
+	min := spec.Min.Unwrap()
 	pass := v >= min
 	if !pass {
 		message := r.CreateMessage(spec.MinMessage, func() string {
@@ -76,12 +55,10 @@ func (spec IntSpec) CheckMin(v int, r *Rule) (fail bool) {
 	return
 }
 func (spec IntSpec) CheckMax(v int, r *Rule) (fail bool) {
-	var max int
-	if spec.Max.Valid() {
-		max = spec.Max.Unwrap()
-	} else {
+	if !spec.Max.Valid() {
 		return
 	}
+	max := spec.Max.Unwrap()
 	pass := v <= max
 	if !pass {
 		message := r.CreateMessage(spec.MaxMessage, func() string {
