@@ -1,6 +1,7 @@
 package tj
 
 import (
+	"errors"
 	"log"
 	"reflect"
 )
@@ -18,6 +19,9 @@ type Report struct {
 func (checker Checker) Scan(data Data) (report Report) {
 	rValue := reflect.ValueOf(data)
 	rType := rValue.Type()
+	if rType.Kind() == reflect.Ptr {
+		panic(errors.New("typejson/go: Scan(data) can not be pointer"))
+	}
 	return checker.reflectScan(rValue, rType)
 }
 func (checker Checker) reflectScan(rValue reflect.Value, rType reflect.Type) (report Report) {
