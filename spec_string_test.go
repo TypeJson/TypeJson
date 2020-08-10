@@ -311,3 +311,36 @@ func TestSpectStringMinMax(t *testing.T) {
 	})
 
 }
+
+type SpecStringEmail struct {
+	Email string
+	OtherEmail string
+}
+func (v SpecStringEmail) TJ(r *tj.Rule) {
+	r.String(v.Email, tj.StringSpec{
+		Name: "邮箱",
+		Ext:  []tj.StringSpec{
+			tj.Email(),
+		},
+	})
+	r.String(v.OtherEmail, tj.Email().NameIs("附属邮箱"))
+}
+func TestStringEmail(t *testing.T) {
+	as := gtest.NewAS(t)
+	_=as
+	c := tj.NewCN()
+	as.Equal(c.Scan(SpecStringEmail{
+		Email: "12345",
+		OtherEmail: "mail@github.com",
+	}), tj.Report{
+		Fail:    true,
+		Message: "邮箱格式错误",
+	})
+	as.Equal(c.Scan(SpecStringEmail{
+		Email: "12345@qq.com",
+		OtherEmail: "mailithub.com",
+	}), tj.Report{
+		Fail:    true,
+		Message: "附属邮箱格式错误",
+	})
+}

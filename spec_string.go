@@ -18,6 +18,11 @@ type StringSpec struct {
 	BanPattern []string
 	PatternMessage string
 	Enum []string
+	Ext []StringSpec
+}
+func (s StringSpec) NameIs(name string) StringSpec {
+	s.Name = name
+	return s
 }
 type stringSpecRender struct {
 	Value interface{}
@@ -41,6 +46,15 @@ func (r *Rule) String(v string, spec StringSpec) {
 	if spec.CheckPattern   (v, r) { return }
 	if spec.CheckBanPattern(v, r) { return }
 	if spec.CheckEnum(v, r) {return}
+	for _, ext := range spec.Ext {
+		ext.Name = spec.Name
+		ext.AllowEmpty = spec.AllowEmpty
+		if ext.PatternMessage == "" {
+			ext.PatternMessage = spec.PatternMessage
+		}
+		r.String(v, ext)
+		if r.Fail {return}
+	}
 }
 
 func (spec StringSpec) CheckMaxRuneLen(v string, r *Rule) (fail bool) {
