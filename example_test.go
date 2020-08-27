@@ -70,7 +70,7 @@ func ExampleQuickStart() {
 	if report.Fail {
 		log.Print(report.Message)
 	} else {
-		log.Panic("验证通过")
+		log.Print("验证通过")
 	}
 }
 func Test_ExampleQuickStart(t *testing.T) {

@@ -15,8 +15,11 @@ type Formatter interface {
 	StringEnum (name string, value string, enum []string) string
 
 	IntNotAllowEmpty(name string) string
-	IntMin(name string, v int, min int) string
-	IntMax(name string, v int, max int) string
+	IntMin(name string, value int, min int) string
+	IntMax(name string, value int, max int) string
+
+	FloatMin(name string, value float64, min float64) string
+	FloatMax(name string, value float64, max float64) string
 
 	ArrayMinLen(name string, len int, minLen int) string
 	ArrayMaxLen(name string, len int, maxLen int) string
@@ -50,6 +53,14 @@ func (CNFormat) IntMin(name string, value int, min int) string {
 func (CNFormat) IntMax(name string, value int, max int) string {
 	return name + "不能大于" + gconv.IntString(max)
 }
+func (CNFormat) FloatMin(name string, value float64, min float64) string {
+	return name + "不能小于" + gconv.Float64String(min)
+}
+func (CNFormat) FloatMax(name string, value float64, max float64) string {
+	return name + "不能大于" + gconv.Float64String(max)
+}
+
+
 
 func (CNFormat) ArrayMinLen(name string, len int, minLen int) string {
 	return name + "长度不能小于" + gconv.IntString(minLen)
