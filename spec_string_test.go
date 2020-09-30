@@ -265,7 +265,7 @@ type SpecStringMinMax struct {
 func (v SpecStringMinMax) TJ(r *tj.Rule) {
 	r.String(v.Name, tj.StringSpec{
 		Name:              "姓名",
-		AllowEmpty: true,
+		AllowEmpty: 	   true,
 		MinRuneLen:        2,
 		MaxRuneLen:        4,
 	})

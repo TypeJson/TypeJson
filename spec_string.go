@@ -3,7 +3,6 @@ package tj
 import (
 	"github.com/hoisie/mustache"
 	ge "github.com/og/x/error"
-	glist "github.com/og/x/list"
 	"regexp"
 )
 
@@ -146,8 +145,12 @@ func (spec StringSpec) CheckEnum(v string, r *Rule) (fail bool) {
 	if len(spec.Enum) == 0 {
 		return false
 	}
-	sList := glist.StringList{Value:spec.Enum}
-	pass := sList.In(v)
+	pass := false
+	for _, enum := range spec.Enum {
+		if enum == v {
+			pass = true
+		}
+	}
 	if !pass {
 		message := r.Format.StringEnum(spec.Name, v, spec.Enum)
 		r.Break(spec.render(message, v))
